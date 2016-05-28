@@ -1,24 +1,19 @@
 package io.monteirodev.justjava;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
-
-import java.text.NumberFormat;
 
 /**
  * This app displays an order form to order coffee.
  */
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
 
     private int quantity = 1;
     @Override
@@ -32,6 +27,7 @@ public class MainActivity extends ActionBarActivity {
      */
     public void submitOrder(View view) {
         EditText nameEditText = (EditText) findViewById(R.id.name_edit_text);
+        String name = nameEditText.getText().toString();
 
         CheckBox whippedCreamCheckBox = (CheckBox) findViewById(R.id.whipped_cream_checkbox);
         boolean hasWhippedCream = whippedCreamCheckBox.isChecked();
@@ -41,20 +37,18 @@ public class MainActivity extends ActionBarActivity {
 
         int price = calculatePrice(hasWhippedCream, hasChocolate);
         String priceMessage = createOrderSummary(
-                nameEditText.getText().toString(),
+                name,
                 price,
                 hasWhippedCream,
                 hasChocolate);
         // displayMessage(priceMessage);
 
-        Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
-                "mailto","", null));
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Just Java");
+        Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+        emailIntent.setData(Uri.fromParts("mailto","", null));
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.order_summary_email_subject, name));
         emailIntent.putExtra(Intent.EXTRA_TEXT, priceMessage);
         if (emailIntent.resolveActivity(getPackageManager()) != null) {
             startActivity(Intent.createChooser(emailIntent, "Send email..."));
-        } else {
-            displayMessage(priceMessage);
         }
     }
 
@@ -87,11 +81,11 @@ public class MainActivity extends ActionBarActivity {
         TextView quantityTextView = (TextView) findViewById(
                 R.id.quantity_text_view);
 
-        quantityTextView.setText("" + number);
+        quantityTextView.setText(number + "");
     }
 
     /**
-     * Calculates the price of the order.
+     * Calculates the price of the order based on whipped cream and chocolate.
      *
      * @param hasWhippedCream
      * @param hasChocolate
@@ -113,23 +107,16 @@ public class MainActivity extends ActionBarActivity {
 //        priceTextView.setText(NumberFormat.getCurrencyInstance().format(number));
 //    }
 
-    /**
-     * This method displays the given text on the screen.
-     */
-    private void displayMessage(String message) {
-        TextView orderSummaryTextView = (TextView) findViewById(R.id.order_summary_text_view);
-        orderSummaryTextView.setText(message);
-    }
-
     private String createOrderSummary(String name, int price, boolean hasWhippedCream,  boolean hasChocolate){
-        return "Name: " + name +
-                "\n" +
-                "\nAdd whipped cream? " + hasWhippedCream +
-                "\nAdd chocolate? " + hasChocolate +
-                "\nQuantity: "+quantity+
-                "\nTotal: £"+price+
-                "\n" +
-                "\nThank you!";
+        String priceMessage = getString(R.string.order_summary_name,name);
+        priceMessage += "\n";
+        priceMessage += "\n" + getString(R.string.order_summary_whipped_cream,hasWhippedCream);
+        priceMessage += "\n" + getString(R.string.order_summary_chocolate, hasChocolate);
+        priceMessage += "\n" + getString(R.string.order_summary_quantity, quantity);
+        priceMessage += "\n" + getString(R.string.order_summary_price, price);
+        priceMessage += "\n";
+        priceMessage += "\n" + getString(R.string.thank_you);
+        return priceMessage;
     }
 
 }
