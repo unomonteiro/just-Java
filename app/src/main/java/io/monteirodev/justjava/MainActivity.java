@@ -33,7 +33,10 @@ public class MainActivity extends ActionBarActivity {
         int price = calculatePrice();
 
         CheckBox whippedCreamCheckBox = (CheckBox) findViewById(R.id.whipped_cream_checkbox);
-        String priceMessage = createOrderSummary(price, whippedCreamCheckBox.isChecked());
+        CheckBox chocolateCheckBox = (CheckBox) findViewById(R.id.chocolate_checkbox);
+        String priceMessage = createOrderSummary(price,
+                whippedCreamCheckBox.isChecked(),
+                chocolateCheckBox.isChecked());
         displayMessage(priceMessage);
     }
 
@@ -92,9 +95,10 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    private String createOrderSummary(int price, boolean hasWhippedCream){
+    private String createOrderSummary(int price, boolean hasWhippedCream,  boolean hasChocolate){
         return "Name: Kaptain Kunal" +
-                "\nHas Whipped cream? " + hasWhippedCream +
+                "\nAdd whipped cream? " + hasWhippedCream +
+                "\nAdd chocolate? " + hasChocolate +
                 "\nQuantity: "+quantity+
                 "\nTotal: £"+price+
                 "\nThank you!";
