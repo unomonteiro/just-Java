@@ -1,10 +1,13 @@
 package io.monteirodev.justjava;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,7 +20,7 @@ import java.text.NumberFormat;
  */
 public class MainActivity extends ActionBarActivity {
 
-    private int quantity = 0;
+    private int quantity = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,33 +31,52 @@ public class MainActivity extends ActionBarActivity {
      * This method is called when the order button is clicked.
      */
     public void submitOrder(View view) {
-//        display(quantity);
-//        displayPrice(quantity * 5);
-        int price = calculatePrice();
+        EditText nameEditText = (EditText) findViewById(R.id.name_edit_text);
 
         CheckBox whippedCreamCheckBox = (CheckBox) findViewById(R.id.whipped_cream_checkbox);
+        boolean hasWhippedCream = whippedCreamCheckBox.isChecked();
+
         CheckBox chocolateCheckBox = (CheckBox) findViewById(R.id.chocolate_checkbox);
-        String priceMessage = createOrderSummary(price,
-                whippedCreamCheckBox.isChecked(),
-                chocolateCheckBox.isChecked());
-        displayMessage(priceMessage);
+        boolean hasChocolate = chocolateCheckBox.isChecked();
+
+        int price = calculatePrice(hasWhippedCream, hasChocolate);
+        String priceMessage = createOrderSummary(
+                nameEditText.getText().toString(),
+                price,
+                hasWhippedCream,
+                hasChocolate);
+        // displayMessage(priceMessage);
+
+        Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
+                "mailto","", null));
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Just Java");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, priceMessage);
+        if (emailIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(Intent.createChooser(emailIntent, "Send email..."));
+        } else {
+            displayMessage(priceMessage);
+        }
     }
 
     public void increment(View view) {
+        if (quantity == 10){
+            Toast.makeText(MainActivity.this, "You cannot have more than 10 coffees", Toast.LENGTH_SHORT).show();
+            return;
+        }
         quantity++;
         displayQuantity(quantity);
-        int price = calculatePrice();
+        // int price = calculatePrice();
         // displayPrice(price);
     }
 
     public void decrement(View view) {
-        if (quantity <= 1) {
-            quantity = 0;
-        } else {
-            quantity--;
+        if (quantity == 1) {
+            Toast.makeText(MainActivity.this, "You cannot have less than 1 coffee", Toast.LENGTH_SHORT).show();
+            return;
         }
+        quantity--;
         displayQuantity(quantity);
-        int price = calculatePrice();
+        // int price = calculatePrice();
         //displayPrice(price);
     }
 
@@ -71,10 +93,16 @@ public class MainActivity extends ActionBarActivity {
     /**
      * Calculates the price of the order.
      *
+     * @param hasWhippedCream
+     * @param hasChocolate
      */
-    private int calculatePrice() {
-        int price = quantity * 5;
-        return price;
+    private int calculatePrice(boolean hasWhippedCream, boolean hasChocolate) {
+
+        int basePrice = 5;
+        if (hasWhippedCream) basePrice += 1;
+        if (hasChocolate) basePrice += 2;
+
+        return basePrice * quantity;
     }
 
     /**
@@ -91,16 +119,16 @@ public class MainActivity extends ActionBarActivity {
     private void displayMessage(String message) {
         TextView orderSummaryTextView = (TextView) findViewById(R.id.order_summary_text_view);
         orderSummaryTextView.setText(message);
-        Context context = this;
-
     }
 
-    private String createOrderSummary(int price, boolean hasWhippedCream,  boolean hasChocolate){
-        return "Name: Kaptain Kunal" +
+    private String createOrderSummary(String name, int price, boolean hasWhippedCream,  boolean hasChocolate){
+        return "Name: " + name +
+                "\n" +
                 "\nAdd whipped cream? " + hasWhippedCream +
                 "\nAdd chocolate? " + hasChocolate +
                 "\nQuantity: "+quantity+
                 "\nTotal: £"+price+
+                "\n" +
                 "\nThank you!";
     }
 
